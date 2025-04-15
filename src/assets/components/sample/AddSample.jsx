@@ -1,58 +1,125 @@
-import React from 'react';
+import React, { useState } from 'react';
+import axios from 'axios';
 
-const AddSample = ({ isModalOpen, handleModalToggle }) => {
+const AddSample = ({ isModalOpen, handleModalToggle, onSaved }) => {
+  const [formData, setFormData] = useState({
+    namaUnitPemohon: '',
+    tanggalSurat: '',
+    namaBahan: '',
+    nomorPO: '',
+    nomorSurat: '',
+    status: 'pending'
+  });
+
+  // Jika modal tidak terbuka, tidak akan merender komponen ini
   if (!isModalOpen) return null;
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      await axios.post('http://localhost:5000/samples', formData, { withCredentials: true });
+      onSaved(); // Refresh the sample list after adding
+      handleModalToggle(); // Close modal after saving
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // Button Cancel akan memanggil handleModalToggle untuk menutup modal
+  const handleCancel = () => {
+    handleModalToggle(); // Menutup modal
+  };
 
   return (
     <div className="fixed inset-0 flex justify-center items-center z-50">
-      {/* Background Overlay with reduced opacity */}
-      <div className="absolute "></div>
-
-      {/* Modal Content */}
+      <div className="absolute inset-0 bg-black opacity-50" onClick={handleCancel}></div>
       <div className="relative bg-white p-8 rounded-lg w-130 shadow-lg">
         <h2 className="text-2xl font-semibold mb-4">Add New Sample</h2>
 
-        <form>
+        <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Name</label>
+            <label className="block text-sm font-medium text-gray-700">Nama Unit Pemohon</label>
             <input
               type="text"
-              className="mt-1 p-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#015db2]"
-              placeholder="Enter user name"
+              name="namaUnitPemohon"
+              value={formData.namaUnitPemohon}
+              onChange={handleInputChange}
+              className="mt-1 p-2 w-full border border-gray-300 rounded-md"
+              placeholder="Enter Unit Pemohon"
             />
           </div>
 
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Email</label>
+            <label className="block text-sm font-medium text-gray-700">Tanggal Surat</label>
             <input
-              type="email"
-              className="mt-1 p-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#015db2]"
-              placeholder="Enter email"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Password</label>
-            <input
-              type="password"
-              className="mt-1 p-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#015db2]"
-              placeholder="Enter password"
+              type="date"
+              name="tanggalSurat"
+              value={formData.tanggalSurat}
+              onChange={handleInputChange}
+              className="mt-1 p-2 w-full border border-gray-300 rounded-md"
             />
           </div>
 
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Role</label>
+            <label className="block text-sm font-medium text-gray-700">Nama Bahan</label>
+            <input
+              type="text"
+              name="namaBahan"
+              value={formData.namaBahan}
+              onChange={handleInputChange}
+              className="mt-1 p-2 w-full border border-gray-300 rounded-md"
+              placeholder="Enter Nama Bahan"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">Nomor PO</label>
+            <input
+              type="text"
+              name="nomorPO"
+              value={formData.nomorPO}
+              onChange={handleInputChange}
+              className="mt-1 p-2 w-full border border-gray-300 rounded-md"
+              placeholder="Enter Nomor PO"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">Nomor Surat</label>
+            <input
+              type="text"
+              name="nomorSurat"
+              value={formData.nomorSurat}
+              onChange={handleInputChange}
+              className="mt-1 p-2 w-full border border-gray-300 rounded-md"
+              placeholder="Enter Nomor Surat"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">Status</label>
             <select
-              className="mt-1 p-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#015db2]"
+              name="status"
+              value={formData.status}
+              onChange={handleInputChange}
+              className="mt-1 p-2 w-full border border-gray-300 rounded-md"
             >
-              <option value="admin">Admin</option>
-              <option value="user">User</option>
+              <option value="pending">Pending</option>
+              <option value="complete">Complete</option>
+              <option value="cancelled">Cancelled</option>
             </select>
           </div>
 
           <div className="flex justify-end space-x-4">
             <button
               type="button"
-              onClick={handleModalToggle}
+              onClick={handleCancel} // Close modal when Cancel is clicked
               className="px-4 py-2 bg-gray-300 text-black rounded-md hover:bg-gray-400 transition duration-300"
             >
               Cancel
@@ -61,7 +128,7 @@ const AddSample = ({ isModalOpen, handleModalToggle }) => {
               type="submit"
               className="px-4 py-2 bg-[#015db2] text-white rounded-md hover:bg-[#5fa7c9] transition duration-300"
             >
-              Add User
+              Add Sample
             </button>
           </div>
         </form>

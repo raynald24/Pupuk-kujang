@@ -1,17 +1,116 @@
-import React, { useState } from 'react';
-import AddSample from './AddSample';
-import EditSample from './EditSample';
+import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom'; // Import useLocation untuk membaca state dari Dashboard
+import axios from 'axios';
+import AddSample from './AddSample';  // Assuming AddSample is a modal component
+import EditSample from './EditSample';  // Assuming EditSample is a modal component
 
 function SampleList() {
+  const [samples, setSamples] = useState([]);
+  const [filteredSamples, setFilteredSamples] = useState([]);
+  const [searchQuery, setSearchQuery] = useState(''); // State untuk menyimpan query pencarian
+  const location = useLocation(); // Hook untuk mengambil state dari Dashboard
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const handleModalToggle = () => {
-    setIsModalOpen(!isModalOpen);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [selectedSample, setSelectedSample] = useState(null);
+
+  // State untuk pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
+
+  // Fetch samples dari backend
+  const fetchSamples = async () => {
+    try {
+      const res = await axios.get('http://localhost:5000/samples', { withCredentials: true });
+      setSamples(res.data);
+      setFilteredSamples(res.data); // Initialize filtered samples
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  const [isEditOpen, setIsEditOpen] = useState(false);
-  const handleEditToggle = () => {
-    console.log('Toggling Edit Modal'); // Menambahkan log untuk debug
-    setIsEditOpen(!isEditOpen);
+  useEffect(() => {
+    fetchSamples();
+  }, []);
+
+  useEffect(() => {
+    // Jika ada status dari Dashboard, otomatis filter berdasarkan status tersebut
+    if (location.state && location.state.status) {
+      const filtered = samples.filter(sample => sample.status === location.state.status);
+      setFilteredSamples(filtered); // Update filteredSamples sesuai status
+    } else {
+      // Jika tidak ada status filter, reset filtered samples ke semua samples
+      setFilteredSamples(samples);
+    }
+  }, [location.state, samples]);
+
+  // Fungsi untuk memformat tanggal menjadi yyyy-MM-dd
+  const formatDate = (dateString) => {
+    return new Date(dateString).toISOString().split('T')[0]; // Hanya ambil bagian yyyy-MM-dd
+  };
+
+  // Fungsi untuk menangani pencarian
+  const handleSearch = () => {
+    let filtered = samples;
+
+    if (searchQuery) {
+      filtered = samples.filter(sample =>
+        sample.namaUnitPemohon.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        sample.namaBahan.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        sample.nomorPO.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        sample.nomorSurat.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        sample.status.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Terapkan filter berdasarkan status jika ada
+    if (location.state && location.state.status) {
+      filtered = filtered.filter(sample => sample.status === location.state.status);
+    }
+
+    setFilteredSamples(filtered);
+  };
+
+  // Handle perubahan input pencarian
+  const handleSearchChange = (event) => {
+    const capitalizedInput = event.target.value.toUpperCase(); // Ubah input ke huruf besar
+    setSearchQuery(capitalizedInput); // Set input yang sudah diubah menjadi kapital
+  };
+
+  // Pagination logic
+  const paginate = (samples, currentPage, itemsPerPage) => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return samples.slice(startIndex, endIndex);
+  };
+
+  const totalPages = Math.ceil(filteredSamples.length / itemsPerPage);
+  const currentPageData = paginate(filteredSamples, currentPage, itemsPerPage);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  // Edit and Delete handlers
+  const handleEditToggle = (sample = null) => {
+    setSelectedSample(sample);
+    setIsEditOpen(!isEditOpen); 
+  };
+
+  const handleDelete = async (id) => {
+    const isConfirmed = window.confirm('Are you sure you want to delete this sample?');
+    if (isConfirmed) {
+      try {
+        await axios.delete(`http://localhost:5000/samples/${id}`, { withCredentials: true });
+        fetchSamples(); // Refetch samples after deletion
+      } catch (err) {
+        console.error('Error deleting sample:', err);
+      }
+    }
+  };
+
+  const handleMoreInfo = (id) => {
+    // You can add logic for showing more details or opening a modal for more info
+    alert(`More Info for Sample ID: ${id}`);
   };
 
   return (
@@ -20,86 +119,101 @@ function SampleList() {
         <h1 className="text-3xl font-bold">Samples</h1>
         <h2 className="text-zinc-500">List of Samples</h2>
       </div>
-      
-      {/* Form Search and Add Sample Button */}
+
       <div className="w-full mx-auto flex items-center gap-x-5 mb-4">
-        {/* Input Search */}
         <div className="relative flex-1">
-          <input 
-            type="search" 
-            id="search-dropdown" 
-            className="block p-2.5 w-full text-sm rounded-e-lg border focus:ring-blue-500  dark:bg-white dark:border-s-blue-600 dark:placeholder-gray-400 dark:text-[#000] dark:focus:border-blue-500" 
-            placeholder="Search Name of Sample, Staff, Type of Sample" 
-            required 
+          {/* Input Pencarian */}
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={handleSearchChange}  // Ubah input menjadi huruf kapital
+            className="block p-2.5 w-full text-sm rounded-e-lg border focus:ring-blue-500"
+            placeholder="Search Name of Sample, Staff, Type of Sample"
+            required
           />
-          <button 
-            type="submit" 
-            className="absolute top-0 right-0 p-2.5 text-sm font-medium h-full text-white bg-blue-700 rounded-e-lg border border-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+          {/* Tombol Search */}
+          <button
+            type="button"
+            onClick={handleSearch}
+            className="absolute top-0 right-0 p-2.5 text-sm font-medium h-full text-white bg-blue-700 rounded-e-lg"
           >
-            <svg className="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-              <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
-            </svg>
-            <span className="sr-only">Search</span>
+            Search
           </button>
         </div>
-        
-        {/* Button Add Sample (diletakkan di sebelah kanan search bar) */}
+
         <div>
-          <button
-            onClick={handleModalToggle}
-            className="bg-[#015db2] text-white px-4 py-2 rounded-md hover:bg-[#5fa7c9] transition duration-300"
-          >
+          {/* Add Sample Button */}
+          <button onClick={() => setIsModalOpen(true)} className="bg-[#015db2] text-white px-4 py-2 rounded-md hover:bg-[#5fa7c9] transition duration-300">
             Add Sample
           </button>
         </div>
       </div>
 
-      {/* Table Section */}
+      {/* Tabel Samples */}
       <div className="w-full overflow-x-auto rounded-2xl border-[#5fa7c9] border-1">
         <table className="min-w-full table-auto bg-white text-black shadow-md">
           <thead className="bg-gray-100">
             <tr>
               <th className="px-4 py-2 text-left font-medium">No</th>
-              <th className="px-4 py-2 text-left font-medium">Name of Sample</th>
-              <th className="px-4 py-2 text-left font-medium">Type of Test</th>
-              <th className="px-4 py-2 text-left font-medium">Staff</th>
-              <th className="px-4 py-2 text-left font-medium">Deadline</th>
+              <th className="px-4 py-2 text-left font-medium">Nama Unit pemohon</th>
+              <th className="px-4 py-2 text-left font-medium">Tanggal surat /PM/POK</th>
+              <th className="px-4 py-2 text-left font-medium">Nama Bahan</th>
+              <th className="px-4 py-2 text-left font-medium">Nomor PO</th>
+              <th className="px-4 py-2 text-left font-medium">Nomor Surat</th>
               <th className="px-4 py-2 text-left font-medium">Status</th>
               <th className="px-4 py-2 text-left font-medium">Action</th>
             </tr>
           </thead>
           <tbody>
-            <tr className="border-t">
-              <td className="px-4 py-2">1</td>
-              <td className="px-4 py-2">Sample 1</td>
-              <td className="px-4 py-2">Test 1</td>
-              <td className="px-4 py-2">John Doe</td>
-              <td className="px-4 py-2">2025-02-25</td>
-              <td className="px-4 py-2">Pending</td>
-              <td className="px-4 py-2">
-                <button
-                  onClick={handleEditToggle} // Menambahkan fungsi toggle di sini
-                  className="bg-[#015db2] text-white px-3 py-1 rounded-md hover:bg-[#5fa7c9] transition duration-300"
-                >
-                  Edit
-                </button>
-                <button className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition duration-300 ml-2">
-                  Delete
-                </button>
-                <button className="bg-yellow-500 text-white px-3 py-1 rounded-md hover:bg-yellow-600 transition duration-300 ml-2">
-                  View
-                </button>
-              </td>
-            </tr>
+            {currentPageData.map((sample, index) => (
+              <tr className="border-t" key={sample.uuid}>
+                <td className="px-4 py-2">{(currentPage - 1) * itemsPerPage + (index + 1)}</td>
+                <td className="px-4 py-2">{sample.namaUnitPemohon}</td>
+                <td className="px-4 py-2">{formatDate(sample.tanggalSurat)}</td>
+                <td className="px-4 py-2">{sample.namaBahan}</td>
+                <td className="px-4 py-2">{sample.nomorPO}</td>
+                <td className="px-4 py-2">{sample.nomorSurat}</td>
+                <td className="px-4 py-2">{sample.status}</td>
+                <td className="px-4 py-2">
+                  <button onClick={() => handleEditToggle(sample)} className="bg-[#015db2] text-white px-3 py-1 rounded-md hover:bg-[#5fa7c9] transition duration-300">
+                    Edit
+                  </button>
+                  <button onClick={() => handleDelete(sample.uuid)} className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition duration-300 ml-2">
+                    Delete
+                  </button>
+                  <button onClick={() => handleMoreInfo(sample.uuid)} className="bg-yellow-500 text-white px-3 py-1 rounded-md hover:bg-yellow-600 transition duration-300 ml-2">
+                    More Info
+                  </button>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
 
-      {/* Modal Add Sample */}
-      <AddSample isModalOpen={isModalOpen} handleModalToggle={handleModalToggle} />
-      
-      {/* Modal Edit Sample */}
-      <EditSample isEditOpen={isEditOpen} handleEditToggle={handleEditToggle} />
+      {/* Pagination */}
+      <div className="flex justify-center mt-4">
+        <button
+          onClick={() => handlePageChange(currentPage - 1)}
+          className="px-4 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600 disabled:bg-gray-400"
+          disabled={currentPage === 1}
+        >
+          Previous
+        </button>
+        <span className="px-4 py-2 text-lg font-semibold">
+          Page {currentPage} of {totalPages}
+        </span>
+        <button
+          onClick={() => handlePageChange(currentPage + 1)}
+          className="px-4 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600 disabled:bg-gray-400"
+          disabled={currentPage === totalPages}
+        >
+          Next
+        </button>
+      </div>
+
+      <AddSample isModalOpen={isModalOpen} handleModalToggle={setIsModalOpen} onSaved={fetchSamples} />
+      <EditSample isEditOpen={isEditOpen} handleEditToggle={handleEditToggle} sample={selectedSample} onSaved={fetchSamples} />
     </div>
   );
 }

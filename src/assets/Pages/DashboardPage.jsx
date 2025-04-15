@@ -1,28 +1,38 @@
-import React,{useEffect} from 'react'
-import Layout from '../layouts/Layout'
-import Welcome from '../components/welcome'
+import React, { useEffect, useState } from 'react';
+import Layout from '../layouts/Layout';
+import Welcome from '../components/dashboard/welcome';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { getMe } from '../features/Authslice';
+import Dashboard from '../components/dashboard/Dashboard';
+
 const DashboardPage = () => {
-  const dispatch= useDispatch();
-  const navigate= useNavigate();
-  const {isError} = useSelector((state=>state.auth));
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { isError } = useSelector((state) => state.auth);
+  const [sidebarVisible, setSidebarVisible] = useState(true); // State untuk mengontrol visibilitas sidebar
 
-  useEffect(()=>{
+  useEffect(() => {
     dispatch(getMe());
-  },[dispatch]);
+  }, [dispatch]);
 
-  useEffect(()=>{
-    if(isError){
-      navigate("/");
+  useEffect(() => {
+    if (isError) {
+      navigate('/');
     }
-  },[isError, navigate]);
+  }, [isError, navigate]);
+
+  // Fungsi untuk toggle sidebar visibility
+  const toggleSidebar = () => {
+    setSidebarVisible(!sidebarVisible);
+  };
+
   return (
-    <div>
-      <Layout>
+    <div className={`layout ${sidebarVisible ? 'sidebar-visible' : ''}`}>
+      <Layout toggleSidebar={toggleSidebar}>
         <Welcome>
-          <div className="w-[100%] h-[95%] bg-white border-1 border-[#5fa7c9] rounded-2xl">        
+          <div className={`w-full flex-1 h-[calc(100vh-100px)] bg-white border-1 border-[#5fa7c9] rounded-2xl overflow-auto`}>
+            <Dashboard />
           </div>
         </Welcome>
       </Layout>
