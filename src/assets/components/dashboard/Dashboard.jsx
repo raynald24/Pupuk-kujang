@@ -13,14 +13,13 @@ const Dashboard = () => {
     cancelled: 0,
   });
 
-  const navigate = useNavigate(); // Inisialisasi useNavigate
+  const navigate = useNavigate(); 
 
   // Mengambil data jumlah sample berdasarkan status
   useEffect(() => {
     const fetchSampleCounts = async () => {
       try {
         const res = await axios.get('http://localhost:5000/samples/counts', { withCredentials: true });
-        console.log(res.data); // Log untuk memeriksa data yang diterima
         setSampleCounts(res.data); // Menyimpan hasil ke dalam state
       } catch (err) {
         console.error('Error fetching sample counts:', err);
@@ -32,7 +31,6 @@ const Dashboard = () => {
 
   // Fungsi untuk navigate ke halaman Sample dan trigger search otomatis
   const handleCardClick = (status) => {
-    // Menavigasi ke halaman sample dan otomatis set query untuk status
     navigate('/sample', { state: { status } });
   };
 
@@ -65,16 +63,19 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen p-6">
-      <div className="pb-5">
-        <h1 className="text-2xl font-bold">Dashboard</h1>
-        <h2 className="text-zinc-500 text-xl">Sample Task Overview</h2>
+    <div className="bg-gray-200 min-h-screen p-6">
+      {/* Header Section */}
+      <div className="bg-gradient-to-br from-sky-500 to-sky-600 p-8 rounded-xl shadow-lg mb-8">
+        <div className="pb-5">
+          <h1 className="text-3xl font-bold text-white">Dashboard</h1>
+          <h2 className="text-gray-200 text-xl">Sample Task Overview</h2>
+        </div>
       </div>
 
       {/* Task Count Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
         <div
-          className="p-4 bg-blue-50 rounded-lg shadow-lg text-center"
+          className="p-6 bg-blue-50 rounded-lg shadow-lg text-center cursor-pointer hover:bg-blue-100"
           onClick={() => handleCardClick('pending')} // Klik pending akan mengarahkan ke sample dengan status pending
         >
           <h3 className="font-semibold text-lg">Pending Tasks</h3>
@@ -82,7 +83,7 @@ const Dashboard = () => {
         </div>
 
         <div
-          className="p-4 bg-green-50 rounded-lg shadow-lg text-center"
+          className="p-6 bg-green-50 rounded-lg shadow-lg text-center cursor-pointer hover:bg-green-100"
           onClick={() => handleCardClick('complete')} // Klik complete
         >
           <h3 className="font-semibold text-lg">Completed Tasks</h3>
@@ -90,7 +91,7 @@ const Dashboard = () => {
         </div>
 
         <div
-          className="p-4 bg-yellow-50 rounded-lg shadow-lg text-center"
+          className="p-6 bg-yellow-50 rounded-lg shadow-lg text-center cursor-pointer hover:bg-yellow-100"
           onClick={() => handleCardClick('cancelled')} // Klik cancelled
         >
           <h3 className="font-semibold text-lg">Cancelled Tasks</h3>
@@ -99,7 +100,7 @@ const Dashboard = () => {
       </div>
 
       {/* Grafik Task Status */}
-      <div className="w-full bg-white p-4 rounded-lg shadow-lg">
+      <div className="w-full bg-white p-6 rounded-lg shadow-lg mt-6">
         <h3 className="text-xl font-semibold mb-4">Task Status Chart</h3>
         <Bar data={chartData} options={chartOptions} /> {/* Menampilkan grafik */}
       </div>

@@ -31,7 +31,7 @@ const DashboardPage = () => {
     <div className={`layout ${sidebarVisible ? 'sidebar-visible' : ''}`}>
       <Layout toggleSidebar={toggleSidebar}>
         <Welcome>
-          <div className={`w-full flex-1 h-[calc(100vh-100px)] bg-white border-1 border-[#5fa7c9] rounded-2xl overflow-auto`}>
+          <div className={`w-full flex-1 h-[calc(100vh-100px)] bg-white rounded-2xl overflow-auto`}>
             <Dashboard />
           </div>
         </Welcome>

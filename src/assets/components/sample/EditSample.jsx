@@ -5,26 +5,40 @@ const EditSample = ({ isEditOpen, handleEditToggle, sample, onSaved }) => {
     const [formData, setFormData] = useState({
         namaUnitPemohon: '',
         tanggalSurat: '',
-        namaBahan: '',
+        namaBahanId: '', // Changed from namaBahan to namaBahanId
         nomorPO: '',
         nomorSurat: '',
         status: 'pending'
     });
 
+    const [namaBahanList, setNamaBahanList] = useState([]); // State untuk namaBahan
+
+    // Mengambil data namaBahan untuk dropdown
     useEffect(() => {
+        const fetchNamaBahan = async () => {
+            try {
+                const res = await axios.get('http://localhost:5000/namaBahan');
+                setNamaBahanList(res.data); // Menyimpan data namaBahan yang diterima
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        fetchNamaBahan();
+
         if (sample) {
             setFormData({
                 namaUnitPemohon: sample.namaUnitPemohon,
                 tanggalSurat: sample.tanggalSurat,
-                namaBahan: sample.namaBahan,
+                namaBahanId: sample.namaBahanId,  // Menggunakan namaBahanId
                 nomorPO: sample.nomorPO,
                 nomorSurat: sample.nomorSurat,
                 status: sample.status
             });
         }
-    }, [sample]);
+    }, [sample]); // Hook bergantung pada sample
 
-    if (!isEditOpen || !sample) return null;
+    if (!isEditOpen || !sample) return null; // Menghindari kesalahan jika tidak ada sample atau edit tidak terbuka
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -35,11 +49,12 @@ const EditSample = ({ isEditOpen, handleEditToggle, sample, onSaved }) => {
         e.preventDefault();
 
         try {
+            // Mengirimkan data ke backend untuk memperbarui sample
             await axios.patch(`http://localhost:5000/samples/${sample.uuid}`, formData, { withCredentials: true });
-            onSaved(); // Refresh the sample list after editing
-            handleEditToggle(); // Close the modal after saving
+            onSaved(); // Refresh sample list setelah menyimpan perubahan
+            handleEditToggle(); // Menutup modal setelah menyimpan perubahan
         } catch (err) {
-            console.error(err);
+            console.error("Error updating sample:", err);
         }
     };
 
@@ -50,6 +65,7 @@ const EditSample = ({ isEditOpen, handleEditToggle, sample, onSaved }) => {
                 <h2 className="text-2xl font-semibold mb-4">Edit Sample</h2>
 
                 <form onSubmit={handleSubmit}>
+                    {/* Nama Unit Pemohon */}
                     <div className="mb-4">
                         <label className="block text-sm font-medium text-gray-700">Nama Unit Pemohon</label>
                         <input
@@ -62,6 +78,7 @@ const EditSample = ({ isEditOpen, handleEditToggle, sample, onSaved }) => {
                         />
                     </div>
 
+                    {/* Tanggal Surat */}
                     <div className="mb-4">
                         <label className="block text-sm font-medium text-gray-700">Tanggal Surat</label>
                         <input
@@ -73,18 +90,25 @@ const EditSample = ({ isEditOpen, handleEditToggle, sample, onSaved }) => {
                         />
                     </div>
 
+                    {/* Nama Bahan Dropdown */}
                     <div className="mb-4">
                         <label className="block text-sm font-medium text-gray-700">Nama Bahan</label>
-                        <input
-                            type="text"
-                            name="namaBahan"
-                            value={formData.namaBahan}
+                        <select
+                            name="namaBahanId" // Use namaBahanId for the foreign key
+                            value={formData.namaBahanId}
                             onChange={handleInputChange}
                             className="mt-1 p-2 w-full border border-gray-300 rounded-md"
-                            placeholder="Enter Nama Bahan"
-                        />
+                        >
+                            <option value="">Pilih Nama Bahan</option>
+                            {namaBahanList.map((bahan) => (
+                                <option key={bahan.id} value={bahan.id}>
+                                    {bahan.namaBahan}
+                                </option>
+                            ))}
+                        </select>
                     </div>
 
+                    {/* Nomor PO */}
                     <div className="mb-4">
                         <label className="block text-sm font-medium text-gray-700">Nomor PO</label>
                         <input
@@ -97,6 +121,7 @@ const EditSample = ({ isEditOpen, handleEditToggle, sample, onSaved }) => {
                         />
                     </div>
 
+                    {/* Nomor Surat */}
                     <div className="mb-4">
                         <label className="block text-sm font-medium text-gray-700">Nomor Surat</label>
                         <input
@@ -109,6 +134,7 @@ const EditSample = ({ isEditOpen, handleEditToggle, sample, onSaved }) => {
                         />
                     </div>
 
+                    {/* Status */}
                     <div className="mb-4">
                         <label className="block text-sm font-medium text-gray-700">Status</label>
                         <select
@@ -123,6 +149,7 @@ const EditSample = ({ isEditOpen, handleEditToggle, sample, onSaved }) => {
                         </select>
                     </div>
 
+                    {/* Buttons */}
                     <div className="flex justify-end space-x-4">
                         <button
                             type="button"

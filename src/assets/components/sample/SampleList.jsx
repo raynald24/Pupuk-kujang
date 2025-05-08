@@ -1,23 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom'; // Import useLocation untuk membaca state dari Dashboard
+import { useLocation, useNavigate } from 'react-router-dom'; 
 import axios from 'axios';
-import AddSample from './AddSample';  // Assuming AddSample is a modal component
-import EditSample from './EditSample';  // Assuming EditSample is a modal component
+import AddSample from './AddSample'; 
+import EditSample from './EditSample';  
 
 function SampleList() {
   const [samples, setSamples] = useState([]);
   const [filteredSamples, setFilteredSamples] = useState([]);
-  const [searchQuery, setSearchQuery] = useState(''); // State untuk menyimpan query pencarian
-  const location = useLocation(); // Hook untuk mengambil state dari Dashboard
+  const [searchQuery, setSearchQuery] = useState('');
+  const location = useLocation();
+  const navigate = useNavigate(); 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedSample, setSelectedSample] = useState(null);
 
   // State untuk pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 8;
+  const itemsPerPage = 6;
 
-  // Fetch samples dari backend
+  // Fetch samples from the backend
   const fetchSamples = async () => {
     try {
       const res = await axios.get('http://localhost:5000/samples', { withCredentials: true });
@@ -33,22 +34,20 @@ function SampleList() {
   }, []);
 
   useEffect(() => {
-    // Jika ada status dari Dashboard, otomatis filter berdasarkan status tersebut
     if (location.state && location.state.status) {
       const filtered = samples.filter(sample => sample.status === location.state.status);
-      setFilteredSamples(filtered); // Update filteredSamples sesuai status
+      setFilteredSamples(filtered); 
     } else {
-      // Jika tidak ada status filter, reset filtered samples ke semua samples
       setFilteredSamples(samples);
     }
   }, [location.state, samples]);
 
   // Fungsi untuk memformat tanggal menjadi yyyy-MM-dd
   const formatDate = (dateString) => {
-    return new Date(dateString).toISOString().split('T')[0]; // Hanya ambil bagian yyyy-MM-dd
+    return new Date(dateString).toISOString().split('T')[0]; 
   };
 
-  // Fungsi untuk menangani pencarian
+  // Handle search functionality
   const handleSearch = () => {
     let filtered = samples;
 
@@ -62,7 +61,6 @@ function SampleList() {
       );
     }
 
-    // Terapkan filter berdasarkan status jika ada
     if (location.state && location.state.status) {
       filtered = filtered.filter(sample => sample.status === location.state.status);
     }
@@ -70,13 +68,11 @@ function SampleList() {
     setFilteredSamples(filtered);
   };
 
-  // Handle perubahan input pencarian
   const handleSearchChange = (event) => {
-    const capitalizedInput = event.target.value.toUpperCase(); // Ubah input ke huruf besar
-    setSearchQuery(capitalizedInput); // Set input yang sudah diubah menjadi kapital
+    const capitalizedInput = event.target.value.toUpperCase(); 
+    setSearchQuery(capitalizedInput); 
   };
 
-  // Pagination logic
   const paginate = (samples, currentPage, itemsPerPage) => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
@@ -90,7 +86,6 @@ function SampleList() {
     setCurrentPage(pageNumber);
   };
 
-  // Edit and Delete handlers
   const handleEditToggle = (sample = null) => {
     setSelectedSample(sample);
     setIsEditOpen(!isEditOpen); 
@@ -101,7 +96,7 @@ function SampleList() {
     if (isConfirmed) {
       try {
         await axios.delete(`http://localhost:5000/samples/${id}`, { withCredentials: true });
-        fetchSamples(); // Refetch samples after deletion
+        fetchSamples(); 
       } catch (err) {
         console.error('Error deleting sample:', err);
       }
@@ -109,68 +104,70 @@ function SampleList() {
   };
 
   const handleMoreInfo = (id) => {
-    // You can add logic for showing more details or opening a modal for more info
-    alert(`More Info for Sample ID: ${id}`);
+    navigate('/sample/moreinfo', { state: { sampleId: id } });
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen p-6">
-      <div className="pb-5">
-        <h1 className="text-3xl font-bold">Samples</h1>
-        <h2 className="text-zinc-500">List of Samples</h2>
-      </div>
-
-      <div className="w-full mx-auto flex items-center gap-x-5 mb-4">
-        <div className="relative flex-1">
-          {/* Input Pencarian */}
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={handleSearchChange}  // Ubah input menjadi huruf kapital
-            className="block p-2.5 w-full text-sm rounded-e-lg border focus:ring-blue-500"
-            placeholder="Search Name of Sample, Staff, Type of Sample"
-            required
-          />
-          {/* Tombol Search */}
-          <button
-            type="button"
-            onClick={handleSearch}
-            className="absolute top-0 right-0 p-2.5 text-sm font-medium h-full text-white bg-blue-700 rounded-e-lg"
-          >
-            Search
-          </button>
+    <div className="bg-gray-200 min-h-screen p-6">
+      {/* Header with gradient blue background */}
+      <div className="bg-gradient-to-br from-sky-500 to-sky-600 p-8 rounded-xl shadow-lg mb-8">
+        <div className="pb-5">
+          <h1 className="text-3xl font-bold text-white">Samples</h1>
+          <h2 className="text-gray-200">List of Samples</h2>
         </div>
 
-        <div>
-          {/* Add Sample Button */}
-          <button onClick={() => setIsModalOpen(true)} className="bg-[#015db2] text-white px-4 py-2 rounded-md hover:bg-[#5fa7c9] transition duration-300">
-            Add Sample
-          </button>
+        <div className="w-full mx-auto flex items-center gap-x-5 mb-4">
+          <div className="relative flex-1">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={handleSearchChange}  
+              className="block p-2.5 w-full text-sm rounded-e-lg border focus:ring-2 focus:ring-sky-500"
+              placeholder="Search Name of Sample, Staff, Type of Sample"
+              required
+            />
+            <button
+              type="button"
+              onClick={handleSearch}
+              className="absolute top-0 right-0 p-2.5 text-sm font-medium h-full text-white bg-sky-700 rounded-e-lg"
+            >
+              Search
+            </button>
+          </div>
+
+          <div>
+            <button 
+              onClick={() => setIsModalOpen(true)} 
+              className="bg-[#015db2] text-white px-4 py-2 rounded-md hover:bg-[#5fa7c9] transition duration-300"
+            >
+              Add Sample
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Tabel Samples */}
-      <div className="w-full overflow-x-auto rounded-2xl border-[#5fa7c9] border-1">
-        <table className="min-w-full table-auto bg-white text-black shadow-md">
-          <thead className="bg-gray-100">
+      {/* Table of samples */}
+      <div className="w-full overflow-x-auto rounded-2xl border-sky-500 border-1">
+        <table className="min-w-full table-auto bg-white text-black shadow-md rounded-lg">
+          <thead className="bg-sky-600 text-white">
             <tr>
-              <th className="px-4 py-2 text-left font-medium">No</th>
-              <th className="px-4 py-2 text-left font-medium">Nama Unit pemohon</th>
-              <th className="px-4 py-2 text-left font-medium">Tanggal surat /PM/POK</th>
-              <th className="px-4 py-2 text-left font-medium">Nama Bahan</th>
-              <th className="px-4 py-2 text-left font-medium">Nomor PO</th>
-              <th className="px-4 py-2 text-left font-medium">Nomor Surat</th>
-              <th className="px-4 py-2 text-left font-medium">Status</th>
-              <th className="px-4 py-2 text-left font-medium">Action</th>
+              <th className="px-4 py-2 text-center font-medium">No</th>
+              <th className="px-4 py-2 text-center font-medium">Nama Unit pemohon</th>
+              <th className="px-4 py-2 text-center font-medium">Tanggal surat /PM/POK</th>
+              <th className="px-4 py-2 text-center font-medium">Nama Bahan</th>
+              <th className="px-4 py-2 text-center font-medium">Nomor PO</th>
+              <th className="px-4 py-2 text-center font-medium">Nomor Surat</th>
+              <th className="px-4 py-2 text-center font-medium">Status</th>
+              <th className="px-4 py-2 font-medium text-center">Action</th>
             </tr>
           </thead>
           <tbody>
             {currentPageData.map((sample, index) => (
-              <tr className="border-t" key={sample.uuid}>
+              <tr className="border-t text-center" key={sample.uuid}>
                 <td className="px-4 py-2">{(currentPage - 1) * itemsPerPage + (index + 1)}</td>
                 <td className="px-4 py-2">{sample.namaUnitPemohon}</td>
                 <td className="px-4 py-2">{formatDate(sample.tanggalSurat)}</td>
-                <td className="px-4 py-2">{sample.namaBahan}</td>
+                <td className="px-4 py-2">{sample.namaBahan?.namaBahan}</td> 
                 <td className="px-4 py-2">{sample.nomorPO}</td>
                 <td className="px-4 py-2">{sample.nomorSurat}</td>
                 <td className="px-4 py-2">{sample.status}</td>
@@ -195,7 +192,7 @@ function SampleList() {
       <div className="flex justify-center mt-4">
         <button
           onClick={() => handlePageChange(currentPage - 1)}
-          className="px-4 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600 disabled:bg-gray-400"
+          className="px-4 py-2 text-white bg-sky-500 rounded-md hover:bg-sky-600 disabled:bg-gray-400"
           disabled={currentPage === 1}
         >
           Previous
@@ -205,7 +202,7 @@ function SampleList() {
         </span>
         <button
           onClick={() => handlePageChange(currentPage + 1)}
-          className="px-4 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600 disabled:bg-gray-400"
+          className="px-4 py-2 text-white bg-sky-500 rounded-md hover:bg-sky-600 disabled:bg-gray-400"
           disabled={currentPage === totalPages}
         >
           Next
