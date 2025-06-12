@@ -1,0 +1,122 @@
+{
+  "materials": [
+    {
+      "name": "H2SO4",
+      "parameters": [
+        {
+          "name": "Kadar H2SO4",
+          "type": "calculated",
+          "formula": "([V1] * [N1] * 49 * [fp] / ([BS1]*1000))*100",
+          "inputs": [
+            { "name": "V1", "label": "Volume (V1)", "type": "number" },
+            { "name": "N1", "label": "Normalitas (N1)", "type": "number" },
+            { "name": "fp", "label": "Faktor Pengenceran (fp)", "type": "number" },
+            { "name": "BS1", "label": "Bobot Sampel (BS1)", "type": "number", "derived": "[BKS] - [BK]" },
+            { "name": "BKS", "label": "Bobot Kosong + Sampel (BKS)", "type": "number" },
+            { "name": "BK", "label": "Bobot Kosong (BK)", "type": "number" }
+          ]
+        },
+        {
+          "name": "Fe",
+          "type": "manual",
+          "formula": null,
+          "inputs": [
+            { "name": "Fe", "label": "Fe", "type": "number" }
+          ]
+        },
+        {
+          "name": "Organic Matter",
+          "type": "calculated",
+          "formula": "[V2] * [N2] * 31.6 * 1000 / [BS2]",
+          "inputs": [
+            { "name": "V2", "label": "Volume (V2)", "type": "number" },
+            { "name": "N2", "label": "Normalitas (N2)", "type": "number" },
+            { "name": "BS2", "label": "Bobot Sampel (BS2)", "type": "number", "derived": "[BKS2] - [BK2]" },
+            { "name": "BKS2", "label": "Bobot Kosong + Sampel (BKS2)", "type": "number" },
+            { "name": "BK2", "label": "Bobot Kosong (BK2)", "type": "number" }
+          ]
+        },
+        {
+          "name": "Turbidity 4% Larutan",
+          "type": "manual",
+          "formula": null,
+          "inputs": [
+            { "name": "Turbidity", "label": "Turbidity 4% Larutan", "type": "number" }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "NaOH",
+      "parameters": [
+        {
+          "name": "Kadar NaOH",
+          "type": "calculated",
+          "formula": "(V * N * 40 * Fp / [BS] * 1000) * 100",
+          "inputs": [
+            { "name": "V", "label": "Volume (V)", "type": "number" },
+            { "name": "N", "label": "Normalitas (N)", "type": "number" },
+            { "name": "Fp", "label": "Faktor Pengenceran (Fp)", "type": "number" },
+            { "name": "BS", "label": "Bobot Sampel (BS)", "type": "number" }
+          ]
+        },
+        {
+          "name": "Fe",
+          "type": "manual",
+          "formula": null,
+          "inputs": [
+            { "name": "Fe", "label": "Fe", "type": "number" }
+          ]
+        },
+        {
+          "name": "SiO2",
+          "type": "manual",
+          "formula": null,
+          "inputs": [
+            { "name": "SiO2", "label": "SiO2", "type": "number" }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Clay",
+      "parameters": [
+        {
+          "name": "H2O",
+          "type": "calculated",
+          "formula": "([BKS]-[BKS2])/[BS]*100",
+          "inputs": [
+            { "name": "BKS", "label": "Bobot Kosong + Sampel (BKS)", "type": "number" },
+            { "name": "BKS2", "label": "Bobot Kosong + Sampel 2 (BKS2)", "type": "number" },
+            { "name": "BS", "label": "Bobot Sampel (BS)", "type": "number" }
+          ]
+        },
+        {
+          "name": "Tertahan di Mesh 100",
+          "type": "calculated",
+          "formula": "(100/[BS1])*[BS2]",
+          "inputs": [
+            { "name": "BS1", "label": "Bobot Sampel (BS1)", "type": "number" },
+            { "name": "BS2", "label": "Bobot Sampel 2 (BS2)", "type": "number" }
+          ]
+        },
+        {
+          "name": "Pan",
+          "type": "calculated",
+          "formula": "100 - [Tertahan di Mesh 100]",
+          "inputs": [
+            { "name": "Tertahan di Mesh 100", "label": "Tertahan di Mesh 100", "type": "number" }
+          ]
+        },
+        {
+          "name": "Kelengketan",
+          "type": "enum",
+          "formula": null,
+          "inputs": [
+            { "name": "Kelengketan", "label": "Kelengketan", "type": "enum", "options": ["Lengket", "Tidak Lengket"] }
+          ]
+        }
+      ]
+    }
+  ]
+}

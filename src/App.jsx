@@ -7,7 +7,8 @@ import Moreinfo from './assets/Pages/Moreinfo'
 import Sample from './assets/Pages/Sample'
 import SampleList from './assets/components/sample/SampleList'
 import AnalysisPage from './assets/Pages/AnalysisPage'
-import Analysis from './assets/components/analysis/analysis'
+import Analysis from './assets/components/analysis/Analysis'
+import AnalysisResult from './assets/Pages/AnalysisResult'
 function App() {
   return (
   <div className="Contianer text-black">
@@ -19,10 +20,10 @@ function App() {
          <Route path ="/users" element={<Users/>}/>
          <Route path = "/sample" element={<Sample/>} />
          <Route path = "/analysis" element={<AnalysisPage/>} />
-         <Route path = "/analysis/result" element={<Analysis/>} />
+         <Route path = "/analysis/result" element={<AnalysisResult/>} />
          
      </Routes>
-     </BrowserRouter>
+     </BrowserRouter>  
   </div>
 
   )
